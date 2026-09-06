@@ -104,7 +104,10 @@ def init_state() -> None:
             st.session_state[key] = value
 
 
-def set_sample(name: str) -> None:
+def clear_barcode() -> None:
+    st.session_state.barcode_text = ""
+    st.session_state.analysis_result = None
+    st.session_state.uploaded_signature = None
     st.session_state.barcode_text = SAMPLES[name]
     st.session_state.analysis_result = None
 
@@ -294,19 +297,15 @@ with review_col:
     st.text_input(copy["barcode_label"], key="barcode_text", placeholder=copy["placeholder"], label_visibility="collapsed", max_chars=14)
     left, right = st.columns(2)
     with left:
-        clear_clicked = st.button(copy["clear"], width="stretch", disabled=not bool(st.session_state.barcode_text))
+        clear_clicked = st.button(copy["clear"], on_click=clear_barcode, width="stretch", disabled=not bool(st.session_state.barcode_text))
     with right:
         audit_clicked = st.button(copy["audit"], type="primary", width="stretch")
-
-if clear_clicked:
-    st.session_state.barcode_text = ""
-    st.session_state.analysis_result = None
-    st.rerun()
 
 if audit_clicked:
     if not st.session_state.barcode_text.strip():
         st.warning(copy["empty_warning"], icon=":material/info:")
     else:
+        st.toast(copy["audit_running"], icon="🔎")
         try:
             with st.spinner(copy["audit_running"]):
                 st.session_state.analysis_result = normalize_result(analyse_label(st.session_state.barcode_text.strip()))
